@@ -41,7 +41,7 @@ Before you begin, ensure you have the following installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Nau4man/chatgpt-bot-api.git
+git clone https://github.com/Nau4man/ChatGPT-Bot-API.git
 ```
 
 2. Navigate to the project directory:
