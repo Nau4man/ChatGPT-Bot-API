@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Bot</title>
+    <!-- Link to Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-3">
+                <h2>Created Prompts</h2>
+                <ul id="createdPrompts" class="list-group"></ul>
+            </div>
+            <div class="col-lg-9">
+                <h1 class="text-center">ChatGPT Bot</h1>
+
+                <div class="mt-4">
+                    <h2>Create a Prompt</h2>
+                    <form id="createForm">
+                        <div class="form-group">
+                            <label for="prompt">Enter Prompt:</label>
+                            <input type="text" class="form-control" id="prompt" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </form>
+                </div>
+
+                <div class="mt-4">
+                    <h2>Get Response</h2>
+                    <form id="getResponseForm">
+                        <div class="form-group">
+                            <label for="promptIndex">Enter Prompt Index:</label>
+                            <input type="number" class="form-control" id="promptIndex" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Get Response</button>
+                        <p id="response" class="mt-2"></p> <!-- Display the response here -->
+                    </form>
+                </div>
+
+                <div class="mt-4">
+                    <h2>Update a Prompt</h2>
+                    <form id="updateForm">
+                        <div class="form-group">
+                            <label for="updatePromptIndex">Enter Prompt Index:</label>
+                            <input type="number" class="form-control" id="updatePromptIndex" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPrompt">Enter New Prompt:</label>
+                            <input type="text" class="form-control" id="newPrompt" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                </div>
+
+                <div class="mt-4">
+                    <h2>Delete a Prompt</h2>
+                    <form id="deleteForm">
+                        <div class="form-group">
+                            <label for="deletePromptIndex">Enter Prompt Index:</label>
+                            <input type="number" class="form-control" id="deletePromptIndex" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to Bootstrap JS (optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const createdPromptsList = document.getElementById('createdPrompts');
+    
+        // Function to add a prompt to the sidebar
+        function addPromptToSidebar(promptIndex, promptText) {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `<strong>Index ${promptIndex}:</strong> ${promptText}`;
+            createdPromptsList.appendChild(listItem);
+        }
+    
+        // Function to delete a prompt from the sidebar
+        function deletePromptFromSidebar(promptIndex) {
+            const listItems = createdPromptsList.getElementsByTagName('li');
+            if (promptIndex >= 1 && promptIndex <= listItems.length) {
+                createdPromptsList.removeChild(listItems[promptIndex - 1]);
+            }
+        }
+    
+        // Function to update a prompt in the sidebar
+        function updatePromptInSidebar(promptIndex, newPrompt) {
+            const listItems = createdPromptsList.getElementsByTagName('li');
+            if (promptIndex >= 1 && promptIndex <= listItems.length) {
+                listItems[promptIndex - 1].innerHTML = `<strong>Index ${promptIndex}:</strong> ${newPrompt}`;
+            }
+        }
+    
+        // Add event listener to the "Create" button
+        const createForm = document.getElementById('createForm');
+        createForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const promptInput = document.getElementById('prompt').value;
+            const response = await fetch('http://localhost:5000/create_prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "prompt": promptInput })
+            });
+            const data = await response.json();
+            addPromptToSidebar(data.prompt_index, promptInput);
+        });
+    
+        // Add event listener to the "Get Response" button
+        const getResponseForm = document.getElementById('getResponseForm');
+        getResponseForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const promptIndex = document.getElementById('promptIndex').value;
+            const response = await fetch(`http://localhost:5000/get_response`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "prompt_index": parseInt(promptIndex) })
+            });
+            const data = await response.json();
+            document.getElementById('response').innerText = data.response;
+        });
+    
+        // Add event listener to the "Update" button
+        const updateForm = document.getElementById('updateForm');
+        updateForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const updatePromptIndex = document.getElementById('updatePromptIndex').value;
+            const newPrompt = document.getElementById('newPrompt').value;
+            const response = await fetch('http://localhost:5000/update_prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "prompt_index": parseInt(updatePromptIndex), "new_prompt": newPrompt })
+            });
+            const data = await response.json();
+            updatePromptInSidebar(parseInt(updatePromptIndex), newPrompt);
+        });
+    
+        // Add event listener to the "Delete" button
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const deletePromptIndex = document.getElementById('deletePromptIndex').value;
+            const response = await fetch('http://localhost:5000/delete_prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "prompt_index": parseInt(deletePromptIndex) })
+            });
+            const data = await response.json();
+            if (data.result === "Prompt deleted successfully.") {
+                deletePromptFromSidebar(parseInt(deletePromptIndex));
+            }
+        });
+    });
+    </script>
+    </body>
+    </html>
+    
